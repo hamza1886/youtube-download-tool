@@ -1,0 +1,14 @@
+# YouTube Download Tool Requirements
+# Install with: pip install -r requirements.txt
+
+# Core dependency for YouTube downloading
+yt-dlp >= 2023.11.16
+
+# Progress bar support
+tqdm >= 4.66.1
+
+# Optional but recommended for better SSL support
+certifi >= 2023.7.22
+
+# Windows color support (optional)
+colorama >= 0.4.6; platform_system=="Windows"
