@@ -2,7 +2,7 @@
 # Install with: pip install -r requirements.txt
 
 # Core dependency for YouTube downloading
-yt-dlp >= 2023.11.16
+yt-dlp >= 2025.11.12
 
 # Progress bar support
 tqdm >= 4.66.1
