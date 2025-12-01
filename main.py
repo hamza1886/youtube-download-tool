@@ -6,15 +6,13 @@ Author: Hamza Rashid
 License: MIT
 """
 
-import os
-import sys
-import json
-import shutil
-import tempfile
 import argparse
+import os
 import subprocess
-from typing import List, Dict, Optional, Tuple
+import sys
+import tempfile
 from pathlib import Path
+from typing import Dict, Optional
 from urllib.parse import urlparse
 
 # Third-party imports
@@ -30,7 +28,7 @@ except ImportError:
     tqdm = None  # Fallback to basic progress
 
 # Constants
-DEFAULT_OUTPUT_DIR = os.getcwd()
+DEFAULT_OUTPUT_DIR = os.path.join(os.getcwd(), 'downloads')
 FFMPEG_CHECK_CMD = ["ffmpeg", "-version"]
 SUPPORTED_SUBTITLE_FORMATS = ['.vtt', '.srt', '.ass']
 EXIT_SUCCESS = 0
