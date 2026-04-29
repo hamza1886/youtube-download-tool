@@ -45,6 +45,7 @@ scoop install ffmpeg
 # Using Homebrew
 brew install ffmpeg
 ```
+
 #### Linux
 
 ```bash
@@ -59,11 +60,31 @@ sudo dnf install ffmpeg
 sudo pacman -S ffmpeg
 ```
 
-### Step 3: Verify Installation
+### Step 3: Install a JavaScript runtime (Deno recommended)
+
+```bash
+# macOS
+brew install deno
+
+# Linux
+curl -fsSL https://deno.land/install.sh | sh
+
+# Windows (pick one)
+winget install DenoLand.Deno
+irm https://deno.land/install.ps1 | iex
+choco install deno
+```
+
+Alternatively, install Node.js (`node`) or Bun (`bun`) — any of the three will work.
+
+After installing, restart your terminal so the new binary appears on PATH.
+
+### Step 4: Verify Installation
 
 ```bash
 python main.py --help
 ffmpeg -version
+deno --version        # or: node --version
 ```
 
 ## Usage Examples
@@ -104,13 +125,13 @@ python main.py -s --sub-lang all https://www.youtube.com/watch?v=VIDEO_ID
 python main.py --simulate https://www.youtube.com/watch?v=VIDEO_ID
 
 # Download specific format by ID
-python main.py -f 137 https://www.youtube.com/watch?v=VIDEO_ID
+python main.py -f 137+140 https://www.youtube.com/watch?v=VIDEO_ID
 
 # Download best video + best audio and merge
 python main.py -f "bestvideo+bestaudio" --merge https://www.youtube.com/watch?v=VIDEO_ID
 
 # Download 1080p video if available
-python main.py -f "bestvideo[height<=1080]+bestaudio/best" https://www.youtube.com/watch?v=VIDEO_ID
+python main.py -f "bestvideo[height<=1080]+bestaudio" https://www.youtube.com/watch?v=VIDEO_ID
 ```
 
 ### Advanced Options
@@ -119,14 +140,17 @@ python main.py -f "bestvideo[height<=1080]+bestaudio/best" https://www.youtube.c
 # Download to specific directory
 python main.py -o /path/to/downloads https://www.youtube.com/watch?v=VIDEO_ID
 
+# Overwrite existing files
+python main.py --overwrite https://www.youtube.com/watch?v=VIDEO_ID
+
 # Download multiple videos
-python main.py https://www.youtube.com/watch?v=VIDEO1 https://www.youtube.com/watch?v=VIDEO2
+python main.py URL1 URL2 URL3
 
 # Limit file size (skip files over 100MB)
 python main.py --max-filesize 100 https://www.youtube.com/watch?v=VIDEO_ID
 
-# Quiet mode with overwrite
-python main.py --quiet --overwrite https://www.youtube.com/watch?v=VIDEO_ID
+# Quiet mode
+python main.py --quiet https://www.youtube.com/watch?v=VIDEO_ID
 
 # Dry run to see what would be downloaded
 python main.py --dry-run https://www.youtube.com/watch?v=VIDEO_ID
@@ -176,17 +200,32 @@ python main.py -s --sub-lang en https://www.youtube.com/watch?v=aqz-KE-bpKQ
 - **MP4:** Widely compatible, but limited subtitle format support. Best for devices/players with limited format support.
 - **MKV:** Better subtitle support (multiple tracks, more formats), but less universal compatibility.
 
-For maximum compatibility, the tool defaults to MP4 with embedded subtitles when possible, falling back to 
-external .srt files when embedding fails.
+For maximum compatibility, the tool defaults to MP4 with embedded subtitles when possible, falling back to
+external `.srt` files when embedding fails.
+
+If you need multiple subtitle tracks, consider manually selecting MKV:
+
+```bash
+python main.py -f "bestvideo+bestaudio" -s --embed-subs URL
+```
 
 ### Troubleshooting
 
 #### Common Issues
-- **"ffmpeg not found":** Ensure ffmpeg is installed and in your system PATH
-- **"yt-dlp not installed":** Run `pip install -r requirements.txt`
-- **Network errors:** Check internet connection; YouTube may be rate-limiting
-- **Format not available:** Use `--simulate` to see available formats
-- **Subtitle embedding fails:** Ensure video container supports subtitles (use MKV for best results)
+
+| Problem                     | Fix                                                                  |
+|-----------------------------|----------------------------------------------------------------------|
+| yt-dlp not found            | Ensure `yt-dlp` is installed and in your system PATH (Step 1 above)  |
+| ffmpeg not found            | Ensure `ffmpeg` is installed and in your system PATH (Step 2 above)  |
+| yt-dlp not installed        | Run `pip install -r requirements.txt`                                |
+| Network errors              | Check internet connection; YouTube may be rate-limiting              |
+| Format not available        | Use `--simulate` or `--dry-run` to see available formats             |
+| Subtitle embedding fails    | Ensure video container supports subtitles (use MKV for best results) |
+| Signature solving failed    | Install deno or node (Step 3 above)                                  |
+| n challenge solving failed  | Same — install a JS runtime                                          |
+| HTTP 403 Forbidden          | `pip install -U yt-dlp` and install deno/node                        |
+| Throttled (very slow)       | JS runtime missing → n-parameter unsolved                            |
+| remote components … skipped | Handled automatically by this tool                                   |
 
 #### Error Codes
 
@@ -216,15 +255,16 @@ The authors of this tool are not responsible for any misuse or legal consequence
 - For batch downloads, consider using a playlist URL instead of multiple video URLs
 
 ---
+
 ## Aside: How to cut a video
 
 ### Install ffmpeg
 
-Make sure you [download a recent version of `ffmpeg`](http://ffmpeg.org/download.html), and don't use the one 
-that comes with your distribution (e.g. Ubuntu). Packaged versions from various distributions are often outdated 
+Make sure you [download a recent version of `ffmpeg`](http://ffmpeg.org/download.html), and don't use the one
+that comes with your distribution (e.g. Ubuntu). Packaged versions from various distributions are often outdated
 and do not behave as expected.
 
-Or [compile it yourself](https://trac.ffmpeg.org/wiki/CompilationGuide). Under macOS, you can 
+Or [compile it yourself](https://trac.ffmpeg.org/wiki/CompilationGuide). Under macOS, you can
 [use Homebrew](https://brew.sh/) and `brew install ffmpeg`.
 
 ### Cutting a video without re-encoding
@@ -250,12 +290,12 @@ The options mean the following:
 - Instead of `-t`, you can also use `-to`, which specifies the end time.
 - `-map 0` maps all streams: audio, video and subtitles
 - `-copyts` preserves the original timestamps from the input file
-- `-c` copy copies the first video, audio, and subtitle bitstream from the input to the output file without 
-re-encoding them. This won't harm the quality and make the command run within seconds.
+- `-c` copy copies the first video, audio, and subtitle bitstream from the input to the output file without
+  re-encoding them. This won't harm the quality and make the command run within seconds.
 
-**Important note about `-copyts`:** By default, ffmpeg resets timestamps to start from 0 after seeking with `-ss`. 
-When you use `-copyts`, the original timestamps are preserved, which makes `-to` work as expected (specifying the 
-absolute end time from the original file). Without `-copyts`, the `-to` parameter behaves unexpectedly because it 
+**Important note about `-copyts`:** By default, ffmpeg resets timestamps to start from 0 after seeking with `-ss`.
+When you use `-copyts`, the original timestamps are preserved, which makes `-to` work as expected (specifying the
+absolute end time from the original file). Without `-copyts`, the `-to` parameter behaves unexpectedly because it
 operates on the reset timeline.
 
 For example:
@@ -264,7 +304,7 @@ For example:
 ffmpeg -ss 5 -i in.mp4 -t 30 -map 0 -c copy out.mp4
 ```
 
-This seeks forward in the input by 5 seconds and generates a 30-second long output file. In other words, you get 
+This seeks forward in the input by 5 seconds and generates a 30-second long output file. In other words, you get
 the input video's part from 5–35 seconds.
 
 #### Without `-copyts` (timestamps reset to 0):
@@ -273,7 +313,7 @@ the input video's part from 5–35 seconds.
 ffmpeg -ss 5 -i in.mp4 -to 30 -map 0 -c copy out.mp4
 ```
 
-This does NOT give you 5–35 seconds as you might expect. Instead, it gives you a 30-second output because the 
+This does NOT give you 5–35 seconds as you might expect. Instead, it gives you a 30-second output because the
 timestamps are reset to 0 after the initial seek, making `-to 30` equivalent to `-t 30`.
 
 #### With `-copyts` (preserves original timestamps):
@@ -282,12 +322,12 @@ timestamps are reset to 0 after the initial seek, making `-to 30` equivalent to 
 ffmpeg -copyts -ss 5 -i in.mp4 -to 35 -map 0 -c copy out.mp4
 ```
 
-This correctly gives you the part from 5–35 seconds (30 seconds total) because `-copyts` preserves the original 
+This correctly gives you the part from 5–35 seconds (30 seconds total) because `-copyts` preserves the original
 timeline, allowing `-to 35` to work intuitively.
 
-**Do you need timestamps starting at 0?** The `-copyts` approach creates output files where timestamps don't start 
-at 0 (they preserve the original timeline). For most playback scenarios, this works fine. However, if you need 
-timestamps starting exactly at 0 (for editing workflows, concatenation, or certain streaming platforms), you can 
+**Do you need timestamps starting at 0?** The `-copyts` approach creates output files where timestamps don't start
+at 0 (they preserve the original timeline). For most playback scenarios, this works fine. However, if you need
+timestamps starting exactly at 0 (for editing workflows, concatenation, or certain streaming platforms), you can
 add a second pass:
 
 ```bash
@@ -300,12 +340,12 @@ For more info on seeking, see https://trac.ffmpeg.org/wiki/Seeking
 
 ### Cutting a video with re-encoding
 
-Sometimes, using `-c copy` leads to output files that some players cannot process (they'll show a black frame or 
+Sometimes, using `-c copy` leads to output files that some players cannot process (they'll show a black frame or
 have audio-video sync errors).
 
-If you leave out the `-c copy` option, `ffmpeg` will automatically re-encode the output video and audio according 
-to the format you chose. For high quality video and audio, read the 
-[x264 Encoding Guide](https://ffmpeg.org/trac/ffmpeg/wiki/x264EncodingGuide) and the 
+If you leave out the `-c copy` option, `ffmpeg` will automatically re-encode the output video and audio according
+to the format you chose. For high quality video and audio, read the
+[x264 Encoding Guide](https://ffmpeg.org/trac/ffmpeg/wiki/x264EncodingGuide) and the
 [AAC Encoding Guide](http://ffmpeg.org/trac/ffmpeg/wiki/AACEncodingGuide), respectively.
 
 For example:
@@ -314,13 +354,13 @@ For example:
 ffmpeg -ss [start] -i in.mp4 -t [duration] -c:v libx264 -crf 23 -c:a aac -b:a 192k out.mp4
 ```
 
-You can change the CRF and audio bitrate parameters to vary the output quality. Lower CRF means better quality, 
+You can change the CRF and audio bitrate parameters to vary the output quality. Lower CRF means better quality,
 and vice-versa. Sane values are between 18 and 28.
 
 ---
 
-
 ## Contributing
+
 Feel free to submit issues, fork the repository, and create pull requests for any improvements.
 
 ## License

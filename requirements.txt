@@ -11,4 +11,4 @@ tqdm >= 4.67.3
 certifi >= 2026.4.22
 
 # Windows color support (optional)
-colorama >= 0.4.6; platform_system=="Windows"
+colorama >= 0.4.6; platform_system=="win32"
