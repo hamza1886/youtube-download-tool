@@ -2,13 +2,13 @@
 # Install with: pip install -r requirements.txt
 
 # Core dependency for YouTube downloading
-yt-dlp >= 2026.3.21.233500.dev0
+yt-dlp >= 2026.4.10.235301.dev0
 
 # Progress bar support
 tqdm >= 4.67.3
 
 # Optional but recommended for better SSL support
-certifi >= 2026.2.25
+certifi >= 2026.4.22
 
 # Windows color support (optional)
 colorama >= 0.4.6; platform_system=="Windows"
